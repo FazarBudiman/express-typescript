@@ -14,11 +14,19 @@ app.get('/', (req, res) => {
   res.status(200).send({ status: 'ok' });
 });
 
-const api = express.Router();
+app.get('/hallo', (req, res) => {
+  res.status(200).send({message: 'Fuck You'})
+})
 
-api.get('/hello', (req, res) => {
-  res.status(200).send({ message: 'hello world' });
-});
+// const api = express.Router();
+
+// api.get('/test', (req, res) => {
+//   res.status(200).send({ message: 'hello Fucking World' });
+// });
+
+// api.get('/hallo', (req, res) => {
+//   res.json('Wawaa')
+// })
 
 // Version the api
-app.use('/api/v1', api);
+// app.use('/api/v1', api);
