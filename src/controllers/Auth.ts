@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
-import Db from "../config/Db";
 import { QueryResult } from "pg";
+import BaseController from "./BaseController";
 
 interface auth {
     email: string,
@@ -11,16 +11,15 @@ interface auth {
     idKategoriPengguna?: number,
 }
 
-class Auth {
-    private pool = Db.getInstance().connect()
+class Auth extends BaseController {
 
     public Login = async (req: Request, res: Response): Promise<Response> => {
         const login: auth = req.body
         try {
-            const response: QueryResult = await this.pool. query('SELECT * FROM ruangguru.pengguna WHERE email like $1', [login.email]);
+            const response: QueryResult = await this.executeQuery(`SELECT * FROM ruangguru.pengguna WHERE email like '${login.email}'`);
             if (response.rowCount !== 0) {
                 
-                const response: QueryResult = await this.pool. query('SELECT id, pengguna.email, kata_sandi, nama, id_kategori_pengguna FROM ruangguru.pengguna LEFT JOIN ruangguru.siswa ON pengguna.id = siswa.id_siswa WHERE  pengguna.kata_sandi LIKE $1', [login.kataSandi]);
+                const response: QueryResult = await this.executeQuery(`SELECT id, pengguna.email, kata_sandi, nama, id_kategori_pengguna FROM ruangguru.pengguna LEFT JOIN ruangguru.siswa ON pengguna.id = siswa.id_siswa WHERE  pengguna.kata_sandi LIKE '${login.kataSandi}'`);
                 if (response.rowCount !== 0) {
                     return res.status(200).json({
                         message: 'Login berhasil',
@@ -28,7 +27,7 @@ class Auth {
                     });    
                 } else {
                     return res.status(200).json({
-                        message: 'Password Salah'
+                        message: 'Password Salah',
                     })
                 }
             } else {
@@ -42,20 +41,14 @@ class Auth {
         }
     }
     
-    // Nothing Yet
     public register = async (req: Request, res: Response): Promise<Response> => {
         const register : auth = req.body
         try {
-            const response: QueryResult = 
-                // await this.pool.query('call ruangguru.addpengguna (cast($1 as varchar), cast($2 as varchar), cast($2 as varchar), cast($3 as varchar), cast($4 as varchar), $5)', [register.id, register.email, register.name, register.jenjang, register.password, register.idKategoriPengguna]);
-                await this.pool.query(`call ruangguru.addpengguna (cast(${register.id} as varchar), cast(${register.email} as varchar), cast('${register.name}' as varchar), cast(${register.jenjang} as varchar), cast(${register.kataSandi} as varchar), ${register.idKategoriPengguna})`);
-                // await this.pool.query(`
-                // BEGIN;
-                // INSERT INTO ruangguru.pengguna (id, email, kata_sandi, id_kategori_pengguna, createdat) VALUES ($1, $2, $3, $4, now());
-                // INSERT INTO ruangguru.siswa (id_siswa, email, nama, jenjang) VALUES ($1, $2, $5, $6);
-                // COMMIT;`, [
-                //     register.id, register.email, register.password, register.idKategoriPengguna, register.name, register.jenjang
-                // ])
+            const response: QueryResult = await this.executeQuery(`
+                BEGIN;
+                INSERT INTO ruangguru.pengguna (id, email, kata_sandi, id_kategori_pengguna, createdat) VALUES ('${register.id}', '${register.email}', '${register.kataSandi}, ${register.idKategoriPengguna}, now());
+                INSERT INTO ruangguru.siswa (id_siswa, email, nama, jenjang) VALUES ('${register.id}', '${register.email}', '${register.name}', '${register.jenjang}');
+                COMMIT;`)
             return res.status(200).json({
                 response,
                 message: 'Register Berhasil',

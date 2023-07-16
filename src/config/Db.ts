@@ -1,8 +1,10 @@
 import { Pool } from "pg";
+import IDb from "./IDb"
 
-class Db {
+class Db implements IDb {
   private static instance: Db;
   public pool : Pool;
+    // static getInstance: any;
 
   connect(){
     return this.pool = new Pool({
@@ -14,7 +16,7 @@ class Db {
     })
   }
 
-  public static getInstance(): Db {
+  getInstance(): Db {
     if (!Db.instance) {
       Db.instance = new Db()
     }
